@@ -1,0 +1,37 @@
+
+services:
+  mongo:
+    image: mongo:7
+    container_name: mongo_superheroes
+    restart: always
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+
+  api:
+    build: ./backend
+    container_name: superheroes_api
+    restart: always
+    ports:
+      - "8081:8081"
+    depends_on:
+      - mongo
+    volumes:
+      - ./backend:/app
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8081 --reload
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_BASE_URL: http://localhost:8081
+    container_name: superheroes_frontend
+    restart: always
+    ports:
+      - "5173:80"
+    depends_on:
+      - api
+
+volumes:
+  mongo_data:
